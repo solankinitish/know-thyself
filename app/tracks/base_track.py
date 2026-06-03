@@ -70,3 +70,32 @@ class BaseTrack:
 
         self.logger.info(f"Response generated.")
         return response
+    
+    def get_memory(self) -> str:
+        try:
+            results = self.p_memory.get_session_history(self.user_id, self.track)
+            if not results.matches:
+                return "No past session memory found."
+            # Get the most recent session summary
+            sorted_matches = sorted(
+                results.matches, 
+                key=lambda x: x.metadata.get("session_no", 0), 
+                reverse=True
+            )
+            for match in sorted_matches:
+                content = match.metadata.get("content", "")
+                if content:
+                    return content
+            return "No past session memory found."
+        except Exception as e:
+            self.logger.error(f"Memory fetch failed: {e}")
+            return "Memory unavailable."
+    
+    def get_status(self) -> dict:
+        """Returns current session status."""
+        return {
+            "session_no": self.session_no,
+            "exchange_count": self.exchange_count,
+            "exchanges_until_summary": self.n_exchanges - self.exchange_count,
+            "n_exchanges": self.n_exchanges
+        }

@@ -22,11 +22,12 @@ class CoachingService:
         if track not in self.track_map:
             raise ValueError("Track not in Track Map.")
         # On first message
-        if user_id not in self.active_coaches:
+        key = f"{user_id}_{track}"
+        if key not in self.active_coaches:
             track_class = self.track_map[track]
-            self.active_coaches[user_id] = track_class(user_id=user_id)
+            self.active_coaches[key] = track_class(user_id=user_id)
         self.logger.info(f"Coach created for {user_id} on {track} track.")
-        return self.active_coaches[user_id]
+        return self.active_coaches[key]
 
     def chat(self, user_id, track, message):
         if not message or not message.strip():

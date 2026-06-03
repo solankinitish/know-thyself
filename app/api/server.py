@@ -64,3 +64,24 @@ def habits_data(request: DataRequest):
         return {"status": "logged"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/memory/{user_id}/{track}")
+def get_memory(user_id: str, track: str):
+    try:
+        coach = service.get_coach(user_id, track)
+        memory = coach.get_memory()
+        return {"memory": memory}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/insights/{user_id}/{track}")
+def get_insights(user_id: str, track: str):
+    try:
+        coach = service.get_coach(user_id, track)
+        insights = coach.get_insights()
+        status = coach.get_status()
+        return {"insights": insights, "status": status}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

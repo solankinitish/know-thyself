@@ -71,7 +71,8 @@ class PersistentMemory:
 
     def get_session_history(self, user_id, track):
         self.logger.info(f"{user_id} on {track} track.")
-        vector = np.zeros(384).tolist()
+        # Use a neutral query instead of zero vector
+        vector = self.model.encode("session summary progress").tolist()
         results = self.index.query(
             vector=vector,
             top_k=100,
@@ -81,4 +82,5 @@ class PersistentMemory:
                 "track": {"$eq": track}
             }
         )
+        self.logger.info(f"get_session_history: {len(results.matches)} matches for {user_id}/{track}")
         return results

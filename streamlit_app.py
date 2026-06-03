@@ -11,6 +11,7 @@ st.set_page_config(page_title="KnowThyself", page_icon="🧠", layout="centered"
 # API_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 API_URL = os.getenv("BACKEND_URL", "https://knowthyself-backend-799604771720.us-central1.run.app")
+# API_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 GCS_BUCKET = os.getenv("GCS_BUCKET", "knowthyself-data")
 
 def show_login():
@@ -125,16 +126,69 @@ def show_data_form():
 
 def show_coaching():
     st.title(f"{st.session_state.user_id} - {st.session_state.track.capitalize()}")
+    
+    st.markdown("""
+<style>
+[data-testid="stSidebar"] {
+    transition: none !important;
+}
+.stSpinner {
+    display: none !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
     with st.sidebar:
+        st.markdown("### 🧠 System State")
         st.write(f"**User:** {st.session_state.user_id}")
         st.write(f"**Track:** {st.session_state.track.capitalize()}")
+
+        if st.session_state.get("messages"):
+            try:
+                ins_resp = requests.get(
+                    f"{API_URL}/insights/{st.session_state.user_id}/{st.session_state.track.lower()}"
+                )
+                if ins_resp.status_code == 200:
+                    data = ins_resp.json()
+                    status = data.get("status", {})
+                    insights = data.get("insights", "")
+
+                    st.markdown("---")
+                    st.markdown("#### 📊 Current Session")
+                    st.write(f"Session: **{status.get('session_no', 1)}**")
+                    st.write(f"Exchanges this session: **{status.get('exchange_count', 0)}/{status.get('n_exchanges', 5)}**")
+                    st.write(f"Next summary in: **{status.get('exchanges_until_summary', 5)} messages**")
+
+                    if insights and insights != "No relevant insight found.":
+                        st.markdown("---")
+                        st.markdown("#### 💡 Past Session Insights")
+                        for line in insights.split("\n"):
+                            if line.strip():
+                                st.write(f"• {line}")
+            except Exception as e:
+                st.caption(f"Insights unavailable: {e}")
+
+            try:
+                mem_resp = requests.get(
+                    f"{API_URL}/memory/{st.session_state.user_id}/{st.session_state.track.lower()}"
+                )
+                if mem_resp.status_code == 200:
+                    memory = mem_resp.json().get("memory", "")
+                    if memory and memory not in ["No past session memory found.", "Memory unavailable."]:
+                        st.markdown("---")
+                        st.markdown("#### 🗂 Past Session Memory")
+                        st.caption(memory[:300] + "..." if len(memory) > 300 else memory)
+            except Exception as e:
+                st.caption(f"Memory unavailable: {e}")
+
+        st.markdown("---")
         if st.button("Change Track"):
             del st.session_state.track
             st.rerun()
 
     if st.session_state.get("data_logged"):
-            st.success("Data logged successfully!")
-            st.session_state.data_logged = False
+        st.success("Data logged successfully!")
+        st.session_state.data_logged = False
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -148,13 +202,13 @@ def show_coaching():
             st.write(msg["content"])
     if prompt := st.chat_input("Ask your coach anything..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.spinner("Your coach is thinking..."):     
-                    response = requests.post(f"{API_URL}/chat", json={
-                    "user_id": st.session_state.user_id,
-                    "track": st.session_state.track.lower(),
-                    "message": prompt  
-                    })
-                    reply = response.json()["response"]
+        with st.spinner("Your coach is thinking..."):
+            response = requests.post(f"{API_URL}/chat", json={
+                "user_id": st.session_state.user_id,
+                "track": st.session_state.track.lower(),
+                "message": prompt
+            })
+            reply = response.json()["response"]
         st.session_state.messages.append({"role": "assistant", "content": reply})
         st.rerun()
 

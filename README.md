@@ -1,6 +1,6 @@
 # KnowThyself
 **Stateful AI system with persistent memory across sessions — Fitness, Habits, Relationships tracks**  
-Deployed on Google Cloud Run &nbsp;·&nbsp; [Live Demo](https://knowthyself-frontend-799604771720.us-central1.run.app)
+
 <img width="1280" height="720" alt="KnowThyself_demo" src="https://github.com/user-attachments/assets/e398fe84-e949-4e83-b49f-aba36352018d" />
 
 
@@ -146,13 +146,6 @@ Persistent Memory (Pinecone)
 | test_summarization | Auto-summarization triggers after n_exchanges | PASS ✅ |
 
 **Score: 5/5**
-
----
-
-## Live Demo
-
-- **Frontend:** https://knowthyself-frontend-799604771720.us-central1.run.app
-- **Backend:** https://knowthyself-backend-799604771720.us-central1.run.app/health
 
 ---
 
